@@ -1,5 +1,3 @@
-const prompt = require("prompt");
-
 const Gameboard = (function () {
   let board = [
     Cell(),
@@ -13,61 +11,96 @@ const Gameboard = (function () {
     Cell(),
   ];
 
+  const placeToken = (index, token) => {
+    board[index].setState(token);
+  };
+
   const displayBoard = () => {
     for (cell of board) {
-      console.log(cell);
       console.log(cell.getState());
     }
   };
 
-  function setToken(index, token) {
-    board[index].setState(token);
-  }
-
-  return { displayBoard, setToken };
+  return { placeToken, displayBoard };
 })();
 
-function gameController() {
+const Gamecontroller = (function () {
+  const player1 = {
+    token: "X",
+  };
+  const player2 = {
+    token: "O",
+  };
+  const players = [player1, player2];
   let activePlayer = players[0];
 
-  const players = [
-    (player1 = {
-      token: "X",
-    }),
-    (player2 = {
-      token: "O",
-    }),
-  ];
+  const getActivePlayer = () => {
+    return activePlayer;
+  };
 
-  function startGame() {
-    while (true) {}
-  }
-}
+  const setActivePlayer = () => {
+    activePlayer === players[0]
+      ? (activePlayer = players[1])
+      : (activePlayer = players[0]);
+  };
+
+  const playRound = (index) => {
+    Gameboard.placeToken(index, Gamecontroller.getActivePlayer().token);
+
+    // Check for win
+
+    Gamecontroller.setActivePlayer();
+  };
+
+  return { getActivePlayer, setActivePlayer, playRound };
+})();
+
+const domLink = (function () {
+  const gameboard = document.querySelector("#gameboard");
+
+  const cells = document.querySelectorAll(".cell");
+
+  cells.forEach((cell) => {
+    cell.addEventListener("click", (event) => {
+      const token = "X";
+
+      cell.textContent = token;
+
+      document.appendChild(cell);
+    });
+  });
+
+  console.log(gameboard);
+})();
 
 function Cell() {
-  let state = "";
-
-  const setState = (newState) => {
-    state = newState;
-  };
+  let state = ".";
 
   const getState = () => {
     return state;
   };
 
+  const setState = (newState) => {
+    state = newState;
+  };
+
   return { getState, setState };
 }
 
-Gameboard.displayBoard();
+// Gameboard.placeToken(3, Gamecontroller.getActivePlayer().token);
 
-Gameboard.setToken(3, "X");
+// Gameboard.placeToken(0, Gamecontroller.getActivePlayer().token);
 
-console.log("----------------------------------------------");
+// Gameboard.placeToken(8, Gamecontroller.getActivePlayer().token);
 
-Gameboard.displayBoard();
+// Gameboard.placeToken(5, Gamecontroller.getActivePlayer().token);
 
-Gameboard.setToken(1, "O");
+// Gameboard.placeToken(1, Gamecontroller.getActivePlayer().token);
 
-console.log("----------------------------------------------");
+// Gameboard.displayBoard();
+
+Gamecontroller.playRound(3);
+
+Gamecontroller.playRound(0);
 
 Gameboard.displayBoard();
