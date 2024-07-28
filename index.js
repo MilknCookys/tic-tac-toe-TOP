@@ -71,23 +71,27 @@ const Gameboard = (function () {
     }
 
     function checkDiag(indexNum) {
-      if (indexNum % 2 === 0) {
-        if (
-          Gameboard.getCellState(0) === Gameboard.getCellState(4) &&
-          Gameboard.getCellState(0) === Gameboard.getCellState(8) &&
-          Gameboard.getCellState(0) !== "."
-        ) {
-          return true;
-        } else if (
-          Gameboard.getCellState(2) === Gameboard.getCellState(4) &&
-          Gameboard.getCellState(2) === Gameboard.getCellState(6) &&
-          Gameboard.getCellState(2) !== "."
-        ) {
-          return true;
-        } else {
-          return false;
-        }
+      if (indexNum % 2 !== 0) {
+        return false;
       }
+
+      if (
+        Gameboard.getCellState(0) === Gameboard.getCellState(4) &&
+        Gameboard.getCellState(0) === Gameboard.getCellState(8) &&
+        Gameboard.getCellState(0) !== "."
+      ) {
+        return true;
+      }
+
+      if (
+        Gameboard.getCellState(2) === Gameboard.getCellState(4) &&
+        Gameboard.getCellState(2) === Gameboard.getCellState(6) &&
+        Gameboard.getCellState(2) !== "."
+      ) {
+        return true;
+      }
+
+      return false;
     }
 
     if (
@@ -112,14 +116,22 @@ const Gameboard = (function () {
     return checkArray.includes(".") === true ? false : true;
   };
 
-  return { setToken, displayBoard, getCellState, checkWin, checkTie };
+  return {
+    setToken,
+    displayBoard,
+    getCellState,
+    checkWin,
+    checkTie,
+  };
 })();
 
 const Gamecontroller = (function () {
   const player1 = {
+    name: "Bob",
     token: "X",
   };
   const player2 = {
+    name: "Marty",
     token: "O",
   };
   const players = [player1, player2];
@@ -146,11 +158,13 @@ const Gamecontroller = (function () {
 
     Gameboard.displayBoard();
 
-    Gameboard.checkWin(index) === true
-      ? alert("Win!")
-      : Gameboard.checkTie() === true
-      ? alert("Tie!")
-      : console.log("Nothing");
+    if (Gameboard.checkWin(index) === true) {
+      DomLink.drawWinner(getActivePlayer().name);
+    }
+
+    if (Gameboard.checkTie() === true) {
+      DomLink.drawTie();
+    }
   };
 
   return { getActivePlayer, setActivePlayer, playRound };
@@ -169,6 +183,26 @@ const DomLink = (function () {
 
     event.target.removeEventListener("click", cellClick);
   }
+
+  const drawWinner = (winner) => {
+    const gameManagement = document.querySelector("#gameManagement");
+    const resultText = document.querySelector("#result");
+
+    resultText.textContent = `${winner} wins!`;
+
+    gameManagement.appendChild(resultText);
+  };
+
+  const drawTie = () => {
+    const gameManagement = document.querySelector("#gameManagement");
+    const resultText = document.querySelector("#result");
+
+    resultText.textContent = `Tie!`;
+
+    gameManagement.appendChild(resultText);
+  };
+
+  return { drawWinner, drawTie };
 })();
 
 function Cell() {
@@ -184,21 +218,3 @@ function Cell() {
 
   return { getState, setState };
 }
-
-// Gameboard.setToken(3, Gamecontroller.getActivePlayer().token);
-
-// Gameboard.setToken(0, Gamecontroller.getActivePlayer().token);
-
-// Gameboard.setToken(8, Gamecontroller.getActivePlayer().token);
-
-// Gameboard.setToken(5, Gamecontroller.getActivePlayer().token);
-
-// Gameboard.setToken(1, Gamecontroller.getActivePlayer().token);
-
-// Gameboard.displayBoard();
-
-// Gamecontroller.playRound(3);
-
-// Gamecontroller.playRound(0);
-
-// Gameboard.displayBoard();
