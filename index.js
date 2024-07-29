@@ -11,6 +11,20 @@ const Gameboard = (function () {
     Cell(),
   ];
 
+  const resetBoard = () => {
+    board = [
+      Cell(),
+      Cell(),
+      Cell(),
+      Cell(),
+      Cell(),
+      Cell(),
+      Cell(),
+      Cell(),
+      Cell(),
+    ];
+  };
+
   const setToken = (index, token) => {
     board[index].setState(token);
   };
@@ -29,73 +43,41 @@ const Gameboard = (function () {
     indexNum = Number(index);
 
     function checkRow(indexNum) {
-      if (indexNum >= 0 && indexNum <= 2) {
-        return (
-          Gameboard.getCellState(0) === Gameboard.getCellState(1) &&
-          Gameboard.getCellState(0) === Gameboard.getCellState(2)
-        );
-      } else if (indexNum >= 3 && indexNum <= 5) {
-        return (
-          Gameboard.getCellState(3) === Gameboard.getCellState(4) &&
-          Gameboard.getCellState(3) === Gameboard.getCellState(5)
-        );
-      } else if (indexNum >= 6 && indexNum <= 8) {
-        return (
-          Gameboard.getCellState(6) === Gameboard.getCellState(7) &&
-          Gameboard.getCellState(6) === Gameboard.getCellState(8)
-        );
-      } else {
-        return false;
-      }
+      let row = Math.floor(indexNum / 3) * 3;
+
+      return (
+        Gameboard.getCellState(row) === Gameboard.getCellState(row + 1) &&
+        Gameboard.getCellState(row) === Gameboard.getCellState(row + 2)
+      );
     }
 
     function checkCol(indexNum) {
-      if (indexNum >= 0 && indexNum <= 6) {
+      let col = indexNum % 3;
+
+      return (
+        Gameboard.getCellState(col) === Gameboard.getCellState(col + 3) &&
+        Gameboard.getCellState(col) === Gameboard.getCellState(col + 6)
+      );
+    }
+
+    function checkDiag(indexNum) {
+      if (indexNum % 4 === 0) {
         return (
-          Gameboard.getCellState(0) === Gameboard.getCellState(3) &&
-          Gameboard.getCellState(0) === Gameboard.getCellState(6)
+          Gameboard.getCellState(0) === Gameboard.getCellState(4) &&
+          Gameboard.getCellState(0) === Gameboard.getCellState(8)
         );
-      } else if (indexNum >= 1 && indexNum <= 7) {
+      } else if (indexNum % 2 === 0) {
         return (
-          Gameboard.getCellState(1) === Gameboard.getCellState(4) &&
-          Gameboard.getCellState(1) === Gameboard.getCellState(7)
-        );
-      } else if (indexNum >= 2 && indexNum <= 8) {
-        return (
-          Gameboard.getCellState(2) === Gameboard.getCellState(5) &&
-          Gameboard.getCellState(2) === Gameboard.getCellState(8)
+          Gameboard.getCellState(2) === Gameboard.getCellState(4) &&
+          Gameboard.getCellState(2) === Gameboard.getCellState(6)
         );
       } else {
         return false;
       }
     }
 
-    function checkDiag(indexNum) {
-      if (indexNum % 2 !== 0) {
-        return false;
-      }
-
-      if (
-        Gameboard.getCellState(0) === Gameboard.getCellState(4) &&
-        Gameboard.getCellState(0) === Gameboard.getCellState(8) &&
-        Gameboard.getCellState(0) !== "."
-      ) {
-        return true;
-      }
-
-      if (
-        Gameboard.getCellState(2) === Gameboard.getCellState(4) &&
-        Gameboard.getCellState(2) === Gameboard.getCellState(6) &&
-        Gameboard.getCellState(2) !== "."
-      ) {
-        return true;
-      }
-
-      return false;
-    }
-
     if (
-      checkRow(indexNum) === true ||
+      checkRow(indexNum) === true || // Why is this indexNum ??
       checkCol(indexNum) === true ||
       checkDiag(indexNum) === true
     ) {
@@ -118,6 +100,7 @@ const Gameboard = (function () {
 
   return {
     setToken,
+    resetBoard,
     displayBoard,
     getCellState,
     checkWin,
@@ -147,10 +130,26 @@ const Gamecontroller = (function () {
       : (activePlayer = players[0]);
   };
 
+  const resetActivePlayer = () => {
+    activePlayer = players[0];
+  };
+
+  const resetGame = () => {
+    for (let i = 0; i < 9; i++) {
+      let cell = document.getElementById(`cell${i}`);
+      cell.textContent = "";
+    }
+
+    Gameboard.resetBoard();
+    DomLink.removeResult();
+    DomLink.placeEventListeners();
+    Gamecontroller.resetActivePlayer();
+
+    console.log("Resetting game...");
+  };
+
   const playRound = (index, domCell) => {
     Gameboard.setToken(index, Gamecontroller.getActivePlayer().token);
-
-    // Check for win
 
     domCell.textContent = Gameboard.getCellState(index);
 
@@ -160,14 +159,19 @@ const Gamecontroller = (function () {
 
     if (Gameboard.checkWin(index) === true) {
       DomLink.drawWinner(getActivePlayer().name);
-    }
-
-    if (Gameboard.checkTie() === true) {
+      DomLink.removeEventListeners();
+    } else if (Gameboard.checkTie() === true) {
       DomLink.drawTie();
     }
   };
 
-  return { getActivePlayer, setActivePlayer, playRound };
+  return {
+    getActivePlayer,
+    setActivePlayer,
+    resetActivePlayer,
+    resetGame,
+    playRound,
+  };
 })();
 
 const DomLink = (function () {
@@ -176,6 +180,13 @@ const DomLink = (function () {
     cell.addEventListener("click", cellClick);
   }
 
+  const placeEventListeners = () => {
+    for (let i = 0; i < 9; i++) {
+      let cell = document.getElementById(`cell${i}`);
+      cell.addEventListener("click", cellClick);
+    }
+  };
+
   function cellClick(event) {
     index = event.target.getAttribute("data-id");
 
@@ -183,6 +194,13 @@ const DomLink = (function () {
 
     event.target.removeEventListener("click", cellClick);
   }
+
+  const removeEventListeners = () => {
+    for (let i = 0; i < 9; i++) {
+      let cell = document.getElementById(`cell${i}`);
+      cell.removeEventListener("click", cellClick);
+    }
+  };
 
   const drawWinner = (winner) => {
     const gameManagement = document.querySelector("#gameManagement");
@@ -202,7 +220,25 @@ const DomLink = (function () {
     gameManagement.appendChild(resultText);
   };
 
-  return { drawWinner, drawTie };
+  const removeResult = () => {
+    const resultText = document.querySelector("#result");
+    resultText.textContent = "";
+    resultText.parentElement.removeChild("resultText");
+  };
+
+  const btn = document.querySelector("button");
+
+  console.log({ btn });
+
+  btn.addEventListener("click", Gamecontroller.resetGame);
+
+  return {
+    placeEventListeners,
+    removeEventListeners,
+    drawWinner,
+    drawTie,
+    removeResult,
+  };
 })();
 
 function Cell() {
