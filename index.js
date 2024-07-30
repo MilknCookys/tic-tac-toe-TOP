@@ -223,7 +223,7 @@ const DomLink = (function () {
   const removeResult = () => {
     const resultText = document.querySelector("#result");
     resultText.textContent = "";
-    resultText.parentElement.removeChild("resultText");
+    // resultText.parentElement.removeChild("resultText");
   };
 
   const btn = document.querySelector("button");
